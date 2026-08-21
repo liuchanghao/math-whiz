@@ -6,3 +6,65 @@ generator client {
 datasource db {
   provider = "mysql"
 }
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Admin {
+  id               String         @id @default(uuid()) @db.Char(36)
+  singletonKey     Int            @unique @default(1) @map("singleton_key")
+  username         String         @unique @db.VarChar(64)
+  passwordHash     String         @map("password_hash") @db.VarChar(255)
+  status           AdminStatus    @default(ACTIVE)
+  failedLoginCount Int            @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?      @map("locked_until") @db.DateTime(3)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.DateTime(3)
+  sessions         AdminSession[]
+  auditLogs        AuditLog[]
+
+  @@map("admins")
+}
+
+model AdminSession {
+  id            String    @id @default(uuid()) @db.Char(36)
+  adminId       String    @map("admin_id") @db.Char(36)
+  tokenHash     String    @unique @map("token_hash") @db.Char(64)
+  csrfTokenHash String    @map("csrf_token_hash") @db.Char(64)
+  expiresAt     DateTime  @map("expires_at") @db.DateTime(3)
+  revokedAt     DateTime? @map("revoked_at") @db.DateTime(3)
+  lastSeenAt    DateTime  @default(now()) @map("last_seen_at") @db.DateTime(3)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  admin         Admin     @relation(fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([adminId, revokedAt, expiresAt])
+  @@map("admin_sessions")
+}
+
+model AdminLoginThrottle {
+  fingerprintHash String    @id @map("fingerprint_hash") @db.Char(64)
+  windowStartedAt DateTime  @map("window_started_at") @db.DateTime(3)
+  attemptCount    Int       @default(0) @map("attempt_count")
+  blockedUntil    DateTime? @map("blocked_until") @db.DateTime(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("admin_login_throttles")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Char(36)
+  adminId    String?  @map("admin_id") @db.Char(36)
+  action     String   @db.VarChar(64)
+  targetType String   @map("target_type") @db.VarChar(64)
+  targetId   String?  @map("target_id") @db.VarChar(128)
+  summary    Json
+  requestId  String   @map("request_id") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  admin      Admin?   @relation(fields: [adminId], references: [id], onDelete: Restrict)
+
+  @@index([adminId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}

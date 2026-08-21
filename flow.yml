@@ -30,3 +30,9 @@ stages:
                 corepack enable
                 corepack prepare pnpm@10.33.3 --activate
                 pnpm ci:check
+                docker run --name math-whiz-test-mysql -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=math_whiz_test -p 3307:3306 -d mysql:8.4
+                until docker exec math-whiz-test-mysql mysqladmin ping --silent; do sleep 2; done
+                DATABASE_URL=mysql://root@127.0.0.1:3307/math_whiz_test pnpm --filter @math-whiz/api db:migrate
+                TEST_DATABASE_URL=mysql://root@127.0.0.1:3307/math_whiz_test pnpm test:integration
+                pnpm exec playwright install --with-deps chromium
+                E2E_DATABASE_URL=mysql://root@127.0.0.1:3307/math_whiz_test E2E_ADMIN_USERNAME=math_admin E2E_ADMIN_PASSWORD=integration-only-password-4vPteuKz2S6Dq9Yx pnpm test:e2e

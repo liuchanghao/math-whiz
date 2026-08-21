@@ -20,6 +20,8 @@
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "test:e2e": "pnpm --filter @math-whiz/admin test:e2e",
+    "test:integration": "pnpm --filter @math-whiz/api test:integration",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

@@ -6,10 +6,13 @@ node_modules/
 .expo/
 dist/
 coverage/
+playwright-report/
+test-results/
 apps/api/src/generated/
 *.tsbuildinfo
 .env
 .env.*
 !.env.example
+admin-bootstrap.json
 pnpm-debug.log*
 npm-debug.log*
