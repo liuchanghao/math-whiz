@@ -11,9 +11,9 @@ import { GET as meRoute } from '@/app/api/v1/admin/me/route';
 import { disconnectDatabase, getDatabase } from '@/src/infrastructure/database';
 
 import { AdminAlreadyInitializedError, bootstrapAdmin } from './bootstrap';
-import { verifyPassword } from './password';
 import { loginAdmin, logoutAdmin, restoreAdminSession } from './service';
-import { digestToken } from './token';
+import { verifyPassword } from '../shared/password';
+import { digestToken } from '../shared/token';
 
 const testDatabaseUrl = process.env.TEST_DATABASE_URL ?? '';
 if (

@@ -2,7 +2,7 @@ import { adminUsernameSchema, type AdminPublic } from '@math-whiz/contracts';
 
 import { getDatabase } from '@/src/infrastructure/database';
 
-import { hashPassword } from './password';
+import { hashPassword } from '../shared/password';
 
 type BootstrapAdminInput = {
   username: string;

@@ -6,7 +6,7 @@ import { adminUsernameSchema } from '@math-whiz/contracts';
 
 import { disconnectDatabase } from '../src/infrastructure/database';
 import { bootstrapAdmin } from '../src/modules/identity/admin-auth/bootstrap';
-import { generateStrongPassword } from '../src/modules/identity/admin-auth/password';
+import { generateStrongPassword } from '../src/modules/identity/shared/password';
 
 const username = adminUsernameSchema.parse(process.env.ADMIN_USERNAME);
 const outputFileValue = process.env.ADMIN_BOOTSTRAP_OUTPUT_FILE;

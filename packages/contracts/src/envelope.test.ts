@@ -5,6 +5,7 @@ import {
   createError,
   createSuccess,
   errorEnvelopeSchema,
+  nullDataSchema,
   paginationDataSchema,
   successEnvelopeSchema,
 } from './envelope';
@@ -23,11 +24,17 @@ describe('unified API envelopes', () => {
   });
 
   it('uses null for a successful response without business data', () => {
-    expect(createSuccess('操作成功', null)).toEqual({
+    const schema = successEnvelopeSchema(nullDataSchema);
+    const response = createSuccess('操作成功', null);
+
+    expect(schema.parse(response)).toEqual({
       status: 200,
       message: '操作成功',
       data: null,
     });
+    expect(
+      schema.safeParse({ status: 200, message: '操作成功', data: {} }).success,
+    ).toBe(false);
   });
 
   it('returns a stable machine-readable error shape', () => {

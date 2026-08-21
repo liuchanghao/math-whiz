@@ -4,8 +4,8 @@ import type { AdminPublic } from '@math-whiz/contracts';
 
 import { getDatabase } from '@/src/infrastructure/database';
 
-import { verifyPassword } from './password';
-import { createOpaqueToken, digestToken, tokensMatch } from './token';
+import { verifyPassword } from '../shared/password';
+import { createOpaqueToken, digestToken, tokensMatch } from '../shared/token';
 
 const ADMIN_FAILED_LOGIN_LIMIT = 3;
 const ADMIN_LOCK_DURATION_MS = 30 * 60 * 1000;

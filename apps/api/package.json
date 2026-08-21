@@ -8,6 +8,7 @@
     "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "db:check": "tsx scripts/check-database.ts",
     "db:generate": "prisma generate",
+    "db:hash-member-password": "tsx scripts/hash-member-password.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed-e2e": "tsx scripts/seed-e2e-admin.ts",
     "dev": "next dev --port 3001",
@@ -15,7 +16,7 @@
     "postinstall": "prisma generate",
     "start": "next start --port 3001",
     "test": "vitest run",
-    "test:integration": "vitest run src/modules/identity/admin-auth/admin-auth.integration.test.ts",
+    "test:integration": "vitest run src/modules/identity/admin-auth/admin-auth.integration.test.ts src/modules/identity/member-auth/member-auth.integration.test.ts",
     "typecheck": "prisma generate && tsc --noEmit"
   },
   "dependencies": {

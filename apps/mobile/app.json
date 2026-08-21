@@ -4,6 +4,7 @@
     "slug": "math-whiz",
     "version": "1.0.0",
     "orientation": "default",
+    "plugins": ["expo-secure-store"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,

@@ -10,7 +10,7 @@ import {
   AdminAlreadyInitializedError,
   bootstrapAdmin,
 } from '../src/modules/identity/admin-auth/bootstrap';
-import { verifyPassword } from '../src/modules/identity/admin-auth/password';
+import { verifyPassword } from '../src/modules/identity/shared/password';
 
 if (process.env.NODE_ENV === 'production') {
   throw new Error('The E2E administrator seeder cannot run in production');

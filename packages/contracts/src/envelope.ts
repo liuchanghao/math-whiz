@@ -14,6 +14,8 @@ export const errorDataSchema = z.object({
   fields: z.array(z.string().min(1)).optional(),
 });
 
+export const nullDataSchema = z.null();
+
 export const errorStatusSchema = z.number().int().min(400).max(599);
 
 export const errorEnvelopeSchema = z.object({

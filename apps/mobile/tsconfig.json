@@ -1,7 +1,8 @@
 {
   "extends": ["expo/tsconfig.base", "@math-whiz/typescript-config/base.json"],
   "compilerOptions": {
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["jest"]
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

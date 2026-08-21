@@ -12,6 +12,46 @@ enum AdminStatus {
   DISABLED
 }
 
+enum MemberStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Member {
+  id               String         @id @default(uuid()) @db.Char(36)
+  phone            String         @unique @db.Char(11)
+  passwordHash     String         @map("password_hash") @db.VarChar(255)
+  status           MemberStatus   @default(ACTIVE)
+  failedLoginCount Int            @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?      @map("locked_until") @db.DateTime(3)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.DateTime(3)
+  sessions         MemberSession[] @relation("MemberSessions")
+  activeSession    MemberSession?  @relation("ActiveMemberSession")
+
+  @@map("members")
+}
+
+model MemberSession {
+  id                   String         @id @default(uuid()) @db.Char(36)
+  memberId             String         @map("member_id") @db.Char(36)
+  activeMemberId       String?        @unique @map("active_member_id") @db.Char(36)
+  accessTokenHash      String         @unique @map("access_token_hash") @db.Char(64)
+  accessExpiresAt      DateTime       @map("access_expires_at") @db.DateTime(3)
+  refreshTokenHash     String         @unique @map("refresh_token_hash") @db.Char(64)
+  refreshExpiresAt     DateTime       @map("refresh_expires_at") @db.DateTime(3)
+  revokedAt            DateTime?      @map("revoked_at") @db.DateTime(3)
+  rotatedFromSessionId String?        @unique @map("rotated_from_session_id") @db.Char(36)
+  createdAt            DateTime       @default(now()) @map("created_at") @db.DateTime(3)
+  member               Member         @relation("MemberSessions", fields: [memberId], references: [id], onDelete: Restrict)
+  activeMember         Member?        @relation("ActiveMemberSession", fields: [activeMemberId], references: [id], onDelete: Restrict)
+  rotatedFrom          MemberSession? @relation("MemberSessionRotation", fields: [rotatedFromSessionId], references: [id], onDelete: Restrict)
+  rotatedTo            MemberSession? @relation("MemberSessionRotation")
+
+  @@index([memberId, revokedAt, refreshExpiresAt])
+  @@map("member_sessions")
+}
+
 model Admin {
   id               String         @id @default(uuid()) @db.Char(36)
   singletonKey     Int            @unique @default(1) @map("singleton_key")
