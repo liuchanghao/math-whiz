@@ -16,7 +16,7 @@
     "postinstall": "prisma generate",
     "start": "next start --port 3001",
     "test": "vitest run",
-    "test:integration": "vitest run src/modules/identity/admin-auth/admin-auth.integration.test.ts src/modules/identity/member-auth/member-auth.integration.test.ts",
+    "test:integration": "vitest run src/modules/identity/admin-auth/admin-auth.integration.test.ts && vitest run src/modules/identity/member-auth/member-auth.integration.test.ts && vitest run src/modules/catalog/catalog.integration.test.ts",
     "typecheck": "prisma generate && tsc --noEmit"
   },
   "dependencies": {

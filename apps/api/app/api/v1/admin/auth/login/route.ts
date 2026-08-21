@@ -8,6 +8,7 @@ import {
   isTrustedAdminOrigin,
   jsonResponse,
   optionsResponse,
+  parseJsonBody,
   setAdminSessionCookie,
 } from '@/src/modules/identity/admin-auth/http';
 import { loginAdmin } from '@/src/modules/identity/admin-auth/service';
@@ -21,25 +22,9 @@ export const POST = async (request: Request) => {
     return forbiddenOriginResponse();
   }
 
-  if (!request.headers.get('content-type')?.startsWith('application/json')) {
-    return errorResponse(415, '请求格式不支持', 'UNSUPPORTED_MEDIA_TYPE');
-  }
-
-  let input: unknown;
-  try {
-    input = await request.json();
-  } catch {
-    return errorResponse(400, '请求参数错误', 'VALIDATION_ERROR', ['body']);
-  }
-
-  const parsed = adminLoginRequestSchema.safeParse(input);
-  if (!parsed.success) {
-    return errorResponse(
-      400,
-      '请求参数错误',
-      'VALIDATION_ERROR',
-      parsed.error.issues.map((issue) => issue.path.join('.') || 'body'),
-    );
+  const parsed = await parseJsonBody(request, adminLoginRequestSchema);
+  if (parsed.kind === 'error') {
+    return parsed.response;
   }
 
   const result = await loginAdmin({

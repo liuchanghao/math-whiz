@@ -1,9 +1,19 @@
 import {
   adminSessionDataSchema,
   errorEnvelopeSchema,
+  gradeListDataSchema,
+  gradeSchema,
+  knowledgePointListDataSchema,
+  knowledgePointSchema,
+  nullDataSchema,
   successEnvelopeSchema,
   type AdminLoginRequest,
   type AdminSessionData,
+  type Grade,
+  type GradeUpdateRequest,
+  type KnowledgePoint,
+  type KnowledgePointCreateRequest,
+  type KnowledgePointUpdateRequest,
 } from '@math-whiz/contracts';
 
 const apiBaseUrl = (
@@ -21,21 +31,26 @@ export class AdminApiError extends Error {
   }
 }
 
-const parseAdminSessionResponse = async (
+type EnvelopeParser<TData> = {
+  safeParse: (
+    input: unknown,
+  ) => { success: true; data: { data: TData } } | { success: false };
+};
+
+const parseDataResponse = async <TData>(
   response: Response,
-): Promise<AdminSessionData> => {
+  parser: EnvelopeParser<TData>,
+): Promise<TData> => {
   const body: unknown = await response.json().catch(() => undefined);
 
-  if (response.ok) {
-    const result = successEnvelopeSchema(adminSessionDataSchema).safeParse(
-      body,
-    );
+  if (response.status === 200) {
+    const result = parser.safeParse(body);
     if (result.success) {
       return result.data.data;
     }
   } else {
     const result = errorEnvelopeSchema.safeParse(body);
-    if (result.success) {
+    if (result.success && result.data.status === response.status) {
       throw new AdminApiError(
         result.data.message,
         result.data.status,
@@ -46,6 +61,9 @@ const parseAdminSessionResponse = async (
 
   throw new AdminApiError('服务响应异常，请稍后重试', 502, 'INVALID_RESPONSE');
 };
+
+const parseAdminSessionResponse = (response: Response) =>
+  parseDataResponse(response, successEnvelopeSchema(adminSessionDataSchema));
 
 export const login = async (
   input: AdminLoginRequest,
@@ -75,15 +93,84 @@ export const logout = async (csrfToken: string): Promise<void> => {
     headers: { 'x-csrf-token': csrfToken },
   });
 
-  if (response.ok) {
-    return;
-  }
+  await parseDataResponse(response, successEnvelopeSchema(nullDataSchema));
+};
 
-  const body: unknown = await response.json().catch(() => undefined);
-  const parsed = errorEnvelopeSchema.safeParse(body);
-  throw new AdminApiError(
-    parsed.success ? parsed.data.message : '退出登录失败',
-    parsed.success ? parsed.data.status : response.status,
-    parsed.success ? parsed.data.data.errorCode : 'LOGOUT_FAILED',
+export const getGrades = async (): Promise<Grade[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/grades`, {
+    credentials: 'include',
+  });
+  return parseDataResponse(
+    response,
+    successEnvelopeSchema(gradeListDataSchema),
+  );
+};
+
+export const updateGrade = async (
+  gradeId: number,
+  input: GradeUpdateRequest,
+  csrfToken: string,
+): Promise<Grade> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/grades/${gradeId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'content-type': 'application/json',
+      'x-csrf-token': csrfToken,
+    },
+    body: JSON.stringify(input),
+  });
+  return parseDataResponse(response, successEnvelopeSchema(gradeSchema));
+};
+
+export const getKnowledgePoints = async (): Promise<KnowledgePoint[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/knowledge-points`, {
+    credentials: 'include',
+  });
+  return parseDataResponse(
+    response,
+    successEnvelopeSchema(knowledgePointListDataSchema),
+  );
+};
+
+export const createKnowledgePoint = async (
+  input: KnowledgePointCreateRequest,
+  csrfToken: string,
+): Promise<KnowledgePoint> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/knowledge-points`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'content-type': 'application/json',
+      'x-csrf-token': csrfToken,
+    },
+    body: JSON.stringify(input),
+  });
+  return parseDataResponse(
+    response,
+    successEnvelopeSchema(knowledgePointSchema),
+  );
+};
+
+export const updateKnowledgePoint = async (
+  knowledgePointId: string,
+  input: KnowledgePointUpdateRequest,
+  csrfToken: string,
+): Promise<KnowledgePoint> => {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/admin/knowledge-points/${knowledgePointId}`,
+    {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': csrfToken,
+      },
+      body: JSON.stringify(input),
+    },
+  );
+  return parseDataResponse(
+    response,
+    successEnvelopeSchema(knowledgePointSchema),
   );
 };

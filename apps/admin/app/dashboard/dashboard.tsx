@@ -1,12 +1,19 @@
 'use client';
 
 import type { AdminPublic } from '@math-whiz/contracts';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { AdminApiError, logout, restoreSession } from '@/lib/admin-api';
 
-const modules = ['会员管理', '试题管理', '答题记录', '年级管理', '奖品管理'];
+const modules = [
+  { name: '会员管理' },
+  { name: '试题管理' },
+  { name: '答题记录' },
+  { name: '年级管理', href: '/catalog' },
+  { name: '奖品管理' },
+];
 
 export function Dashboard() {
   const router = useRouter();
@@ -111,10 +118,16 @@ export function Dashboard() {
         )}
         <section className="module-grid" aria-label="管理模块">
           {modules.map((module) => (
-            <article className="module-card" key={module}>
+            <article className="module-card" key={module.name}>
               <span className="module-dot" aria-hidden="true" />
-              <h2>{module}</h2>
-              <p>将在后续一期工单中逐项开放。</p>
+              <h2>{module.name}</h2>
+              {module.href === undefined ? (
+                <p>将在后续一期工单中逐项开放。</p>
+              ) : (
+                <Link className="module-link" href={module.href}>
+                  进入管理
+                </Link>
+              )}
             </article>
           ))}
         </section>

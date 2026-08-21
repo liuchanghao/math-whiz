@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
-import { createError } from '@math-whiz/contracts';
 import { NextResponse } from 'next/server';
+import type { z } from 'zod';
+
+import {
+  errorResponse as baseErrorResponse,
+  jsonResponse as baseJsonResponse,
+  parseJsonBody as baseParseJsonBody,
+} from '@/src/infrastructure/http';
 
 export const ADMIN_SESSION_COOKIE = '__Host-mw_admin';
 
@@ -18,14 +24,14 @@ export const isTrustedAdminOrigin = (request: Request) =>
   request.headers.get('origin') === adminWebOrigin();
 
 export const jsonResponse = <T>(body: T, status = 200) =>
-  NextResponse.json(body, { status, headers: corsHeaders() });
+  baseJsonResponse(body, status, corsHeaders());
 
 export const errorResponse = (
   status: number,
   message: string,
   errorCode: string,
   fields?: string[],
-) => jsonResponse(createError(status, message, errorCode, fields), status);
+) => baseErrorResponse(status, message, errorCode, fields, corsHeaders());
 
 export const forbiddenOriginResponse = () =>
   errorResponse(403, '请求来源不受信任', 'ADMIN_ORIGIN_FORBIDDEN');
@@ -41,7 +47,7 @@ export const optionsResponse = (request: Request) => {
       ...corsHeaders(),
       'Access-Control-Allow-Headers':
         'Content-Type, X-CSRF-Token, X-Request-ID',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
       'Access-Control-Max-Age': '600',
     },
   });
@@ -106,3 +112,8 @@ export const getClientIp = (request: Request) => {
     ?.trim();
   return forwarded || request.headers.get('x-real-ip') || 'unknown';
 };
+
+export const parseJsonBody = async <TSchema extends z.ZodType>(
+  request: Request,
+  schema: TSchema,
+) => baseParseJsonBody(request, schema, corsHeaders());

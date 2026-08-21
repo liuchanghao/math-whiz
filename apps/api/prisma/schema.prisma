@@ -17,6 +17,45 @@ enum MemberStatus {
   DISABLED
 }
 
+enum CatalogStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Grade {
+  id              Int                   @id
+  name            String                @db.VarChar(32)
+  sortOrder       Int                   @unique @map("sort_order")
+  status          CatalogStatus         @default(ACTIVE)
+  knowledgePoints KnowledgePointGrade[]
+  createdAt       DateTime              @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("grades")
+}
+
+model KnowledgePoint {
+  id        String                @id @default(uuid()) @db.Char(36)
+  name      String                @unique @db.VarChar(64)
+  status    CatalogStatus         @default(ACTIVE)
+  grades    KnowledgePointGrade[]
+  createdAt DateTime              @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime              @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@map("knowledge_points")
+}
+
+model KnowledgePointGrade {
+  knowledgePointId String         @map("knowledge_point_id") @db.Char(36)
+  gradeId          Int            @map("grade_id")
+  knowledgePoint   KnowledgePoint @relation(fields: [knowledgePointId], references: [id], onDelete: Restrict)
+  grade            Grade          @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+
+  @@id([knowledgePointId, gradeId])
+  @@index([gradeId, knowledgePointId])
+  @@map("knowledge_point_grades")
+}
+
 model Member {
   id               String         @id @default(uuid()) @db.Char(36)
   phone            String         @unique @db.Char(11)

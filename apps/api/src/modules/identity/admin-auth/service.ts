@@ -41,6 +41,11 @@ type RestoreAdminSessionResult =
 type LogoutAdminResult =
   { kind: 'success' } | { kind: 'unauthorized' } | { kind: 'csrf-invalid' };
 
+type AuthorizeAdminSessionResult =
+  | { kind: 'success'; admin: AdminPublic }
+  | { kind: 'unauthorized' }
+  | { kind: 'csrf-invalid' };
+
 const auditHmacSecret = () => {
   const value = process.env.AUDIT_HMAC_SECRET;
   if (value !== undefined && value.length >= 32) {
@@ -90,6 +95,30 @@ const recordLoginAudit = async ({
       requestId,
     },
   });
+};
+
+const findAdminSession = async ({
+  sessionToken,
+  now,
+}: {
+  sessionToken: string;
+  now: Date;
+}) => {
+  const session = await getDatabase().adminSession.findUnique({
+    where: { tokenHash: digestToken(sessionToken) },
+    include: { admin: true },
+  });
+
+  if (
+    session === null ||
+    session.revokedAt !== null ||
+    session.expiresAt <= now ||
+    session.admin.status !== 'ACTIVE'
+  ) {
+    return { kind: 'inactive', session } as const;
+  }
+
+  return { kind: 'active', session } as const;
 };
 
 const registerIpAttempt = async (
@@ -287,17 +316,10 @@ export const restoreAdminSession = async ({
   now?: Date;
 }): Promise<RestoreAdminSessionResult> => {
   const database = getDatabase();
-  const session = await database.adminSession.findUnique({
-    where: { tokenHash: digestToken(sessionToken) },
-    include: { admin: true },
-  });
+  const found = await findAdminSession({ sessionToken, now });
 
-  if (
-    session === null ||
-    session.revokedAt !== null ||
-    session.expiresAt <= now ||
-    session.admin.status !== 'ACTIVE'
-  ) {
+  if (found.kind === 'inactive') {
+    const { session } = found;
     if (session !== null && session.revokedAt === null) {
       await database.adminSession.update({
         where: { id: session.id },
@@ -307,6 +329,7 @@ export const restoreAdminSession = async ({
 
     return { kind: 'unauthorized' };
   }
+  const { session } = found;
 
   const csrfToken = createOpaqueToken();
   await database.adminSession.update({
@@ -324,6 +347,35 @@ export const restoreAdminSession = async ({
   };
 };
 
+export const authorizeAdminSession = async ({
+  sessionToken,
+  csrfToken,
+  now = new Date(),
+}: {
+  sessionToken: string;
+  csrfToken?: string;
+  now?: Date;
+}): Promise<AuthorizeAdminSessionResult> => {
+  const found = await findAdminSession({ sessionToken, now });
+
+  if (found.kind === 'inactive') {
+    return { kind: 'unauthorized' };
+  }
+  const { session } = found;
+
+  if (
+    csrfToken !== undefined &&
+    !tokensMatch(csrfToken, session.csrfTokenHash)
+  ) {
+    return { kind: 'csrf-invalid' };
+  }
+
+  return {
+    kind: 'success',
+    admin: { id: session.admin.id, username: session.admin.username },
+  };
+};
+
 export const logoutAdmin = async ({
   sessionToken,
   csrfToken,
@@ -336,19 +388,12 @@ export const logoutAdmin = async ({
   now?: Date;
 }): Promise<LogoutAdminResult> => {
   const database = getDatabase();
-  const session = await database.adminSession.findUnique({
-    where: { tokenHash: digestToken(sessionToken) },
-    include: { admin: true },
-  });
+  const found = await findAdminSession({ sessionToken, now });
 
-  if (
-    session === null ||
-    session.revokedAt !== null ||
-    session.expiresAt <= now ||
-    session.admin.status !== 'ACTIVE'
-  ) {
+  if (found.kind === 'inactive') {
     return { kind: 'unauthorized' };
   }
+  const { session } = found;
 
   if (!tokensMatch(csrfToken, session.csrfTokenHash)) {
     return { kind: 'csrf-invalid' };

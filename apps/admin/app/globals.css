@@ -22,7 +22,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -235,6 +236,125 @@ h1 {
   line-height: 1.55;
 }
 
+.module-link {
+  color: #3157d5;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.catalog-content {
+  display: grid;
+  gap: 2rem;
+}
+
+.catalog-section {
+  padding: 1.5rem;
+  border: 1px solid #dce3ef;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.catalog-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.catalog-row {
+  display: grid;
+  grid-template-columns:
+    minmax(12rem, 2fr) minmax(6rem, 0.7fr) minmax(8rem, 1fr)
+    auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #dce3ef;
+  border-radius: 0.8rem;
+}
+
+.catalog-row legend {
+  padding: 0 0.4rem;
+  color: #526079;
+  font-weight: 800;
+}
+
+.catalog-row label,
+.catalog-create-card > label {
+  display: grid;
+  gap: 0.4rem;
+  color: #37435a;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.catalog-row input,
+.catalog-row select,
+.catalog-create-card input {
+  min-height: 2.75rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid #cbd5e5;
+  border-radius: 0.6rem;
+  background: #fff;
+}
+
+.catalog-create-card {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 0.8rem;
+  background: #f6f8fc;
+}
+
+.checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.checkbox-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.checkbox-grid input {
+  min-height: auto;
+}
+
+.compact-button {
+  min-width: 7rem;
+  padding: 0.7rem 1rem;
+}
+
+.knowledge-point-row {
+  grid-template-columns: minmax(12rem, 1.5fr) minmax(8rem, 0.6fr) 2fr auto;
+}
+
+.association-summary {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.status-pill {
+  color: #526079;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.success-notice {
+  margin-bottom: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.65rem;
+  background: #e9f8ee;
+  color: #176b37;
+}
+
+.empty-state {
+  color: #778196;
+}
+
 .module-dot {
   display: block;
   width: 0.7rem;
@@ -265,5 +385,10 @@ h1 {
 
   .dashboard-content {
     padding: 2rem 1rem;
+  }
+
+  .catalog-row,
+  .knowledge-point-row {
+    grid-template-columns: 1fr;
   }
 }
