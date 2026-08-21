@@ -1,0 +1,13 @@
+.scratch/
+docs/
+AGENTS.md
+CONTEXT.md
+node_modules/
+**/next-env.d.ts
+.turbo/
+.next/
+.expo/
+dist/
+coverage/
+apps/api/src/generated/
+pnpm-lock.yaml

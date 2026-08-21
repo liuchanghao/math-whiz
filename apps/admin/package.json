@@ -1,0 +1,28 @@
+{
+  "name": "@math-whiz/admin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3000",
+    "lint": "eslint .",
+    "start": "next start --port 3000",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@math-whiz/contracts": "workspace:*",
+    "next": "16.3.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@math-whiz/typescript-config": "workspace:*",
+    "@types/node": "22.19.21",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.1",
+    "typescript": "6.0.3"
+  }
+}

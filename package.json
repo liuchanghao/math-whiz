@@ -1,0 +1,29 @@
+{
+  "name": "math-whiz",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.3",
+  "engines": {
+    "node": ">=22 <23",
+    "pnpm": ">=10.33 <11"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "ci:check": "pnpm install --frozen-lockfile && pnpm check",
+    "db:generate": "pnpm --filter @math-whiz/api db:generate",
+    "dev": "turbo run dev",
+    "dev:admin": "pnpm --filter @math-whiz/admin dev",
+    "dev:api": "pnpm --filter @math-whiz/api dev",
+    "dev:mobile": "pnpm --filter @math-whiz/mobile dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "prettier": "3.9.6",
+    "turbo": "2.10.11"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "expo": {
+    "name": "数学小达人",
+    "slug": "math-whiz",
+    "version": "1.0.0",
+    "orientation": "default",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mathwhiz.app"
+    },
+    "android": {
+      "package": "com.mathwhiz.app"
+    }
+  }
+}

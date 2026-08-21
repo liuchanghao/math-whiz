@@ -245,7 +245,7 @@
 
 - Windows 10 x64
 - Node.js `22.22.0`，npm `10.9.4`
-- Corepack `0.34.0`，pnpm `9.15.9`，Yarn Classic `1.22.22`
+- Corepack `0.34.0`，项目通过 Corepack 锁定 pnpm `10.33.3`，系统另装有 Yarn Classic `1.22.22`
 - 本机 MySQL 服务正在运行，客户端报告 `9.7.0`
 - 本机 Redis 服务正在运行，服务端版本 `3.0.504`
 - Docker CLI 已安装，但本地开发不使用 Docker

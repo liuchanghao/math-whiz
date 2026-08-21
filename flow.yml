@@ -1,0 +1,32 @@
+name: math-whiz-ci
+
+sources:
+  math_whiz:
+    type: gitee
+    name: math-whiz
+    endpoint: https://gitee.com/lch3320/math-whiz.git
+    branch: main
+    branchesFilter: main
+    triggerEvents:
+      - push
+    certificate:
+      type: serviceConnection
+      serviceConnection: ${GITEE_SERVICE_CONNECTION}
+
+stages:
+  quality_stage:
+    name: 质量门禁
+    jobs:
+      quality_job:
+        name: Node.js 22 检查与构建
+        runsOn: public/cn-hangzhou
+        steps:
+          quality_step:
+            step: NodeBuild
+            name: 冻结安装并执行完整检查
+            with:
+              nodeVersion: '22.22.0'
+              run: |
+                corepack enable
+                corepack prepare pnpm@10.33.3 --activate
+                pnpm ci:check
