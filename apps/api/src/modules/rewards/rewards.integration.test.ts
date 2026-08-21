@@ -91,11 +91,7 @@ integration('prizes and available grades with MySQL', () => {
     for (let index = 1; index <= 10; index += 1) {
       await database.question.create({
         data: {
-          type: 'TRUE_FALSE',
-          stem: `一年级测试题 ${index}`,
-          difficulty: 'EASY',
           status: 'ACTIVE',
-          gradingConfig: { correct: true },
           grades: { create: { gradeId: 1 } },
         },
       });
@@ -103,11 +99,7 @@ integration('prizes and available grades with MySQL', () => {
     for (let index = 1; index <= 9; index += 1) {
       await database.question.create({
         data: {
-          type: 'TRUE_FALSE',
-          stem: `二年级测试题 ${index}`,
-          difficulty: 'EASY',
           status: 'ACTIVE',
-          gradingConfig: { correct: true },
           grades: { create: { gradeId: 2 } },
         },
       });

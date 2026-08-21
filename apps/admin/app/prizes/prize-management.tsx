@@ -215,6 +215,11 @@ export function PrizeManagement() {
                   prize.status === 'ACTIVE' &&
                   prize.gradeIds.includes(grade.id),
               );
+              const unavailableCurrent = prizes.find(
+                (prize) =>
+                  prize.id === grade.currentPrizeId &&
+                  !eligible.some((candidate) => candidate.id === prize.id),
+              );
               return (
                 <div className="current-prize-row" key={grade.id}>
                   <label>
@@ -235,6 +240,14 @@ export function PrizeManagement() {
                       }
                     >
                       <option value="">尚未设置</option>
+                      {unavailableCurrent ? (
+                        <option value={unavailableCurrent.id} disabled>
+                          {unavailableCurrent.name}
+                          {unavailableCurrent.status === 'DISABLED'
+                            ? '（已停用）'
+                            : '（不再适用）'}
+                        </option>
+                      ) : null}
                       {eligible.map((prize) => (
                         <option key={prize.id} value={prize.id}>
                           {prize.name}

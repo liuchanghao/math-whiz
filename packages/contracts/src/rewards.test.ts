@@ -23,6 +23,21 @@ describe('prize and available-grade contracts', () => {
     expect(() =>
       prizeCreateRequestSchema.parse({ ...input, price: 99 }),
     ).toThrow();
+    for (const description of [
+      '<img src="prize.png">',
+      '![奖品](prize.png)',
+      String.raw`奖品价值为 \frac{1}{2}`,
+    ]) {
+      expect(() =>
+        prizeCreateRequestSchema.parse({ ...input, description }),
+      ).toThrow('仅支持纯文本');
+    }
+    expect(
+      prizeCreateRequestSchema.parse({
+        ...input,
+        description: '适合 6 < 10 岁',
+      }).description,
+    ).toBe('适合 6 < 10 岁');
     expect(() => prizeUpdateRequestSchema.parse({})).toThrow();
   });
 

@@ -3,13 +3,26 @@ import { z } from 'zod';
 import {
   catalogueStatusSchema,
   gradeIdSchema,
-  knowledgePointGradeIdsSchema,
+  gradeIdsSchema,
 } from './catalog';
 
 export const prizeIdSchema = z.uuid();
-export const prizeNameSchema = z.string().trim().min(1).max(64);
-export const prizeDescriptionSchema = z.string().trim().min(1).max(1000);
-export const prizeClaimInstructionsSchema = z.string().trim().min(1).max(1000);
+const unsupportedRichTextPattern =
+  /<\/?[A-Za-z][^>]*>|!?\[[^\]]*\]\([^)]*\)|\\(?:begin|end|frac|sqrt|text|mathrm|mathbf|left|right)\b|\$[^$]+\$/;
+
+const plainTextSchema = (maximumLength: number) =>
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(maximumLength)
+    .refine((value) => !unsupportedRichTextPattern.test(value), {
+      message: '仅支持纯文本，不支持 HTML、Markdown 或 LaTeX',
+    });
+
+export const prizeNameSchema = plainTextSchema(64);
+export const prizeDescriptionSchema = plainTextSchema(1000);
+export const prizeClaimInstructionsSchema = plainTextSchema(1000);
 
 export const prizeSchema = z
   .object({
@@ -18,7 +31,7 @@ export const prizeSchema = z
     description: prizeDescriptionSchema,
     claimInstructions: prizeClaimInstructionsSchema,
     status: catalogueStatusSchema,
-    gradeIds: knowledgePointGradeIdsSchema,
+    gradeIds: gradeIdsSchema,
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })
@@ -31,7 +44,7 @@ export const prizeCreateRequestSchema = z
     name: prizeNameSchema,
     description: prizeDescriptionSchema,
     claimInstructions: prizeClaimInstructionsSchema,
-    gradeIds: knowledgePointGradeIdsSchema,
+    gradeIds: gradeIdsSchema,
   })
   .strict();
 

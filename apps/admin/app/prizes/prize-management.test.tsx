@@ -88,6 +88,13 @@ describe('prize management', () => {
             data: { ...prize, name: '数学星球仪', status: 'DISABLED' },
           });
         }
+        if (url.endsWith(`/api/v1/admin/prizes/${prize.id}/enable`)) {
+          return response({
+            status: 200,
+            message: '奖品已启用',
+            data: { ...prize, name: '数学星球仪', status: 'ACTIVE' },
+          });
+        }
         if (url.endsWith('/api/v1/admin/grades/1/current-prize')) {
           return response({
             status: 200,
@@ -110,6 +117,11 @@ describe('prize management', () => {
     await user.click(screen.getByLabelText('适用小学一年级'));
     await user.click(screen.getByRole('button', { name: '创建奖品' }));
     expect(await screen.findByDisplayValue(prize.name)).toBeInTheDocument();
+
+    const secondGradeSelect = screen.getByLabelText('小学二年级当前奖品');
+    expect(
+      within(secondGradeSelect).queryByRole('option', { name: prize.name }),
+    ).not.toBeInTheDocument();
 
     const currentPrizeSelect = screen.getByLabelText('小学一年级当前奖品');
     await user.selectOptions(currentPrizeSelect, prize.id);
@@ -138,5 +150,18 @@ describe('prize management', () => {
       within(updatedPrizeEditor).getByRole('button', { name: '停用奖品' }),
     );
     expect(await screen.findByText('奖品已停用')).toBeInTheDocument();
+    expect(
+      within(currentPrizeSelect).getByRole('option', {
+        name: '数学星球仪（已停用）',
+      }),
+    ).toBeDisabled();
+
+    await user.click(
+      within(updatedPrizeEditor).getByRole('button', { name: '启用奖品' }),
+    );
+    expect(await screen.findByText('奖品已启用')).toBeInTheDocument();
+    expect(
+      within(currentPrizeSelect).getByRole('option', { name: '数学星球仪' }),
+    ).toBeEnabled();
   });
 });

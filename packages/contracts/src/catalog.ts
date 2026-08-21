@@ -30,7 +30,7 @@ export const gradeUpdateRequestSchema = z
 export const knowledgePointNameSchema = z.string().trim().min(1).max(64);
 export const knowledgePointIdSchema = z.uuid();
 
-export const knowledgePointGradeIdsSchema = z
+export const gradeIdsSchema = z
   .array(gradeIdSchema)
   .min(1)
   .max(6)
@@ -43,7 +43,7 @@ export const knowledgePointSchema = z
     id: knowledgePointIdSchema,
     name: knowledgePointNameSchema,
     status: catalogueStatusSchema,
-    gradeIds: knowledgePointGradeIdsSchema,
+    gradeIds: gradeIdsSchema,
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
   })
@@ -54,7 +54,7 @@ export const knowledgePointListDataSchema = z.array(knowledgePointSchema);
 export const knowledgePointCreateRequestSchema = z
   .object({
     name: knowledgePointNameSchema,
-    gradeIds: knowledgePointGradeIdsSchema,
+    gradeIds: gradeIdsSchema,
   })
   .strict();
 
@@ -62,7 +62,7 @@ export const knowledgePointUpdateRequestSchema = z
   .object({
     name: knowledgePointNameSchema.optional(),
     status: catalogueStatusSchema.optional(),
-    gradeIds: knowledgePointGradeIdsSchema.optional(),
+    gradeIds: gradeIdsSchema.optional(),
   })
   .strict()
   .refine((value) => Object.keys(value).length > 0, {

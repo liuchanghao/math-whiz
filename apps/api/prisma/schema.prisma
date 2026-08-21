@@ -22,20 +22,6 @@ enum CatalogStatus {
   DISABLED
 }
 
-enum QuestionType {
-  SINGLE_CHOICE
-  TRUE_FALSE
-  NUMERIC_FILL
-  EXPRESSION
-  VERTICAL_CALCULATION
-}
-
-enum QuestionDifficulty {
-  EASY
-  MEDIUM
-  HARD
-}
-
 enum QuestionStatus {
   DRAFT
   ACTIVE
@@ -60,13 +46,12 @@ model Grade {
 }
 
 model KnowledgePoint {
-  id        String                   @id @default(uuid()) @db.Char(36)
-  name      String                   @unique @db.VarChar(64)
-  status    CatalogStatus            @default(ACTIVE)
+  id        String                @id @default(uuid()) @db.Char(36)
+  name      String                @unique @db.VarChar(64)
+  status    CatalogStatus         @default(ACTIVE)
   grades    KnowledgePointGrade[]
-  questions QuestionKnowledgePoint[]
-  createdAt DateTime                 @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt DateTime                 @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt DateTime              @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime              @updatedAt @map("updated_at") @db.DateTime(3)
 
   @@map("knowledge_points")
 }
@@ -109,35 +94,14 @@ model PrizeGrade {
 }
 
 model Question {
-  id              String                   @id @default(uuid()) @db.Char(36)
-  type            QuestionType
-  stem            String                   @db.Text
-  explanation     String?                  @db.Text
-  difficulty      QuestionDifficulty
-  status          QuestionStatus           @default(DRAFT)
-  gradingConfig   Json                     @map("grading_config")
-  isUsed          Boolean                  @default(false) @map("is_used")
-  options         QuestionOption[]
-  grades          QuestionGrade[]
-  knowledgePoints QuestionKnowledgePoint[]
-  createdAt       DateTime                 @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt       DateTime                 @updatedAt @map("updated_at") @db.DateTime(3)
+  id        String          @id @default(uuid()) @db.Char(36)
+  status    QuestionStatus  @default(DRAFT)
+  grades    QuestionGrade[]
+  createdAt DateTime        @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.DateTime(3)
 
-  @@index([status, difficulty, createdAt])
+  @@index([status, createdAt])
   @@map("questions")
-}
-
-model QuestionOption {
-  id         String   @id @default(uuid()) @db.Char(36)
-  questionId String   @map("question_id") @db.Char(36)
-  text       String   @db.Text
-  sortOrder  Int      @map("sort_order")
-  isCorrect  Boolean  @default(false) @map("is_correct")
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
-
-  @@unique([questionId, sortOrder])
-  @@index([questionId, isCorrect])
-  @@map("question_options")
 }
 
 model QuestionGrade {
@@ -149,19 +113,6 @@ model QuestionGrade {
   @@id([questionId, gradeId])
   @@index([gradeId, questionId])
   @@map("question_grades")
-}
-
-model QuestionKnowledgePoint {
-  questionId       String         @map("question_id") @db.Char(36)
-  knowledgePointId String         @map("knowledge_point_id") @db.Char(36)
-  isPrimary        Boolean        @default(false) @map("is_primary")
-  question         Question       @relation(fields: [questionId], references: [id], onDelete: Restrict)
-  knowledgePoint   KnowledgePoint @relation(fields: [knowledgePointId], references: [id], onDelete: Restrict)
-
-  @@id([questionId, knowledgePointId])
-  @@index([knowledgePointId, questionId])
-  @@index([questionId, isPrimary])
-  @@map("question_knowledge_points")
 }
 
 model Member {
