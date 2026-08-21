@@ -186,7 +186,6 @@ export function PrizeManagement() {
       </header>
       <main className="dashboard-content catalog-content">
         <div className="page-heading">
-          <p className="eyebrow">线下实物奖励</p>
           <h1>奖品与年级配置</h1>
           <p className="muted">
             只维护纯文字奖品信息，领取和交付全部在线下完成。

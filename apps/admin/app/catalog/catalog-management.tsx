@@ -205,7 +205,6 @@ export function CatalogManagement() {
       </header>
       <main className="dashboard-content catalog-content">
         <div className="page-heading">
-          <p className="eyebrow">题库目录</p>
           <h1>年级与知识点</h1>
           <p className="muted">
             年级固定为小学一至六年级，可维护名称、排序、状态和知识点关联。

@@ -1,4 +1,5 @@
 .scratch/
+.agents/skills/
 docs/
 AGENTS.md
 CONTEXT.md

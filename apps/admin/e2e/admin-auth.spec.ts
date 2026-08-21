@@ -15,6 +15,45 @@ const logIn = async (page: import('@playwright/test').Page) => {
   await expect(page).toHaveURL(/\/dashboard$/);
 };
 
+const responsiveViewports = [
+  { height: 844, width: 390 },
+  { height: 1024, width: 768 },
+  { height: 900, width: 1024 },
+  { height: 900, width: 1440 },
+];
+
+const expectNoHorizontalOverflow = async (
+  page: import('@playwright/test').Page,
+) => {
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth + 1,
+    ),
+  ).toBe(true);
+};
+
+test('administrator pages remain usable at every supported web width', async ({
+  page,
+}) => {
+  for (const viewport of responsiveViewports) {
+    await page.setViewportSize(viewport);
+    await page.goto('/login');
+    await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '登录后台' })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  }
+
+  await logIn(page);
+  for (const viewport of responsiveViewports) {
+    await page.setViewportSize(viewport);
+    for (const path of ['/dashboard', '/catalog', '/prizes']) {
+      await page.goto(path);
+      await expect(page.locator('h1')).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    }
+  }
+});
+
 test('administrator can log in, restore the protected console and log out', async ({
   context,
   page,

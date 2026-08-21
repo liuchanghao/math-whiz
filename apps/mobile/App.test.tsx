@@ -5,13 +5,41 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
+import type { ReactNode } from 'react';
+import type { ViewProps } from 'react-native';
 
 import App from './App';
+
+const mockUseWindowDimensions = jest.fn(() => ({
+  fontScale: 1,
+  height: 844,
+  scale: 3,
+  width: 390,
+}));
+const mockUseColorScheme = jest.fn((): 'dark' | 'light' | null => 'light');
 
 jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(),
   getItemAsync: jest.fn(),
   setItemAsync: jest.fn(),
+}));
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const Native =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    SafeAreaProvider: ({ children }: { children: ReactNode }) =>
+      React.createElement(React.Fragment, null, children),
+    SafeAreaView: (props: ViewProps) => React.createElement(Native.View, props),
+  };
+});
+jest.mock('react-native/Libraries/Utilities/useWindowDimensions', () => ({
+  __esModule: true,
+  default: () => mockUseWindowDimensions(),
+}));
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
+  __esModule: true,
+  default: () => mockUseColorScheme(),
 }));
 
 const session = {
@@ -35,8 +63,76 @@ const apiResponse = (body: unknown, status = 200) =>
 describe('member authentication in the mobile application', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseColorScheme.mockReturnValue('light');
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height: 844,
+      scale: 3,
+      width: 390,
+    });
     jest.mocked(SecureStore.getItemAsync).mockResolvedValue(null);
     globalThis.fetch = jest.fn();
+  });
+
+  it.each([
+    ['手机竖屏', 390, 844, 520],
+    ['平板竖屏', 768, 1024, 720],
+    ['平板横屏', 1024, 768, 720],
+  ])('adapts every core page for %s', async (_, width, height, maxWidth) => {
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1,
+      height,
+      scale: 2,
+      width,
+    });
+    jest
+      .mocked(globalThis.fetch)
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '登录成功', data: session }),
+      )
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '可答年级获取成功', data: [] }),
+      );
+
+    render(<App />);
+
+    expect(await screen.findByText('会员登录')).toBeVisible();
+    expect(screen.getByTestId('safe-area')).toBeVisible();
+    expect(screen.getByTestId('app-shell')).toHaveStyle({ maxWidth });
+    expect(screen.getByRole('button', { name: '登录' })).toHaveStyle({
+      minHeight: 54,
+    });
+    fireEvent.changeText(screen.getByLabelText('手机号'), session.member.phone);
+    fireEvent.changeText(screen.getByLabelText('密码'), '123456');
+    fireEvent.press(screen.getByRole('button', { name: '登录' }));
+
+    expect(await screen.findByText('选择年级')).toBeVisible();
+    expect(screen.getByTestId('app-shell')).toHaveStyle({ maxWidth });
+    fireEvent.press(screen.getByRole('button', { name: '修改密码' }));
+
+    expect(await screen.findByText('修改密码')).toBeVisible();
+    expect(screen.getByTestId('app-shell')).toHaveStyle({ maxWidth });
+  });
+
+  it('uses the semantic dark theme when the system prefers dark colors', async () => {
+    mockUseColorScheme.mockReturnValue('dark');
+    mockUseWindowDimensions.mockReturnValue({
+      fontScale: 1.5,
+      height: 844,
+      scale: 3,
+      width: 390,
+    });
+
+    render(<App />);
+
+    expect(await screen.findByText('会员登录')).toBeVisible();
+    expect(screen.getByTestId('safe-area')).toHaveStyle({
+      backgroundColor: '#0b1220',
+    });
+    expect(screen.getByLabelText('手机号')).toHaveStyle({
+      backgroundColor: '#101a2d',
+      color: '#f4f7ff',
+    });
   });
 
   it('logs in with a phone and password then stores the session securely', async () => {
