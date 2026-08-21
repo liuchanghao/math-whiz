@@ -6,6 +6,8 @@ import {
   knowledgePointListDataSchema,
   knowledgePointSchema,
   nullDataSchema,
+  prizeListDataSchema,
+  prizeSchema,
   successEnvelopeSchema,
   type AdminLoginRequest,
   type AdminSessionData,
@@ -14,6 +16,9 @@ import {
   type KnowledgePoint,
   type KnowledgePointCreateRequest,
   type KnowledgePointUpdateRequest,
+  type Prize,
+  type PrizeCreateRequest,
+  type PrizeUpdateRequest,
 } from '@math-whiz/contracts';
 
 const apiBaseUrl = (
@@ -173,4 +178,83 @@ export const updateKnowledgePoint = async (
     response,
     successEnvelopeSchema(knowledgePointSchema),
   );
+};
+
+export const getPrizes = async (): Promise<Prize[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/prizes`, {
+    credentials: 'include',
+  });
+  return parseDataResponse(
+    response,
+    successEnvelopeSchema(prizeListDataSchema),
+  );
+};
+
+export const createPrize = async (
+  input: PrizeCreateRequest,
+  csrfToken: string,
+): Promise<Prize> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/prizes`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'content-type': 'application/json',
+      'x-csrf-token': csrfToken,
+    },
+    body: JSON.stringify(input),
+  });
+  return parseDataResponse(response, successEnvelopeSchema(prizeSchema));
+};
+
+export const updatePrize = async (
+  prizeId: string,
+  input: PrizeUpdateRequest,
+  csrfToken: string,
+): Promise<Prize> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/admin/prizes/${prizeId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'content-type': 'application/json',
+      'x-csrf-token': csrfToken,
+    },
+    body: JSON.stringify(input),
+  });
+  return parseDataResponse(response, successEnvelopeSchema(prizeSchema));
+};
+
+export const setPrizeEnabled = async (
+  prizeId: string,
+  enabled: boolean,
+  csrfToken: string,
+): Promise<Prize> => {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/admin/prizes/${prizeId}/${enabled ? 'enable' : 'disable'}`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'x-csrf-token': csrfToken },
+    },
+  );
+  return parseDataResponse(response, successEnvelopeSchema(prizeSchema));
+};
+
+export const setGradeCurrentPrize = async (
+  gradeId: number,
+  prizeId: string,
+  csrfToken: string,
+): Promise<Grade> => {
+  const response = await fetch(
+    `${apiBaseUrl}/api/v1/admin/grades/${gradeId}/current-prize`,
+    {
+      method: 'PUT',
+      credentials: 'include',
+      headers: {
+        'content-type': 'application/json',
+        'x-csrf-token': csrfToken,
+      },
+      body: JSON.stringify({ prizeId }),
+    },
+  );
+  return parseDataResponse(response, successEnvelopeSchema(gradeSchema));
 };

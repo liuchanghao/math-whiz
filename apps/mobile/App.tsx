@@ -1,6 +1,7 @@
 import {
   memberChangePasswordRequestSchema,
   memberLoginRequestSchema,
+  type AvailableGrade,
   type MemberSessionData,
 } from '@math-whiz/contracts';
 import { StatusBar } from 'expo-status-bar';
@@ -20,6 +21,7 @@ import {
 
 import {
   changeMemberPassword,
+  getAvailableGrades,
   getMember,
   loginMember,
   logoutMember,
@@ -260,6 +262,22 @@ const HomePanel = ({
 }) => {
   const [changingPassword, setChangingPassword] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [grades, setGrades] = useState<AvailableGrade[]>();
+  const [gradeError, setGradeError] = useState<string>();
+
+  useEffect(() => {
+    let active = true;
+    void getAvailableGrades(session.accessToken)
+      .then((availableGrades) => {
+        if (active) setGrades(availableGrades);
+      })
+      .catch(() => {
+        if (active) setGradeError('可答年级暂时无法加载');
+      });
+    return () => {
+      active = false;
+    };
+  }, [session.accessToken]);
 
   if (changingPassword) {
     return (
@@ -277,12 +295,44 @@ const HomePanel = ({
       <Text style={styles.title}>选择年级</Text>
       <Text style={styles.subtitle}>当前登录手机号</Text>
       <Text style={styles.memberPhone}>{session.member.phone}</Text>
-      <View style={styles.placeholderPanel}>
-        <Text style={styles.placeholderTitle}>年级入口即将开放</Text>
-        <Text style={styles.placeholderText}>
-          会员认证已就绪，下一步接入年级与题库。
-        </Text>
-      </View>
+      {gradeError ? (
+        <Text style={styles.errorMessage}>{gradeError}</Text>
+      ) : null}
+      {grades === undefined && gradeError === undefined ? (
+        <View style={styles.placeholderPanel}>
+          <ActivityIndicator color="#3157a4" />
+          <Text style={styles.placeholderText}>正在加载可答年级…</Text>
+        </View>
+      ) : grades?.length === 0 ? (
+        <View style={styles.placeholderPanel}>
+          <Text style={styles.placeholderTitle}>暂无可答年级</Text>
+          <Text style={styles.placeholderText}>
+            年级需要已启用、题量满10题且已配置当前奖品。
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.gradeList}>
+          {grades?.map((grade) => (
+            <Pressable
+              accessibilityLabel={`选择${grade.name}`}
+              accessibilityRole="button"
+              key={grade.id}
+              style={({ pressed }) => [
+                styles.gradeCard,
+                pressed && styles.buttonPressed,
+              ]}
+            >
+              <Text style={styles.gradeName}>{grade.name}</Text>
+              <Text style={styles.gradePrize}>
+                满10题且获得满分，可获得{grade.currentPrize.name}
+              </Text>
+              <Text style={styles.gradeDescription}>
+                {grade.currentPrize.description}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
       <Pressable
         accessibilityLabel="修改密码"
         accessibilityRole="button"
@@ -516,5 +566,27 @@ const styles = StyleSheet.create({
     color: '#526077',
     fontSize: 15,
     lineHeight: 22,
+  },
+  gradeList: { marginTop: 24, gap: 12 },
+  gradeCard: {
+    minHeight: 96,
+    borderWidth: 1,
+    borderColor: '#c8d5ea',
+    borderRadius: 18,
+    padding: 18,
+    backgroundColor: '#f8faff',
+  },
+  gradeName: { color: '#172033', fontSize: 20, fontWeight: '800' },
+  gradePrize: {
+    marginTop: 8,
+    color: '#3157a4',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  gradeDescription: {
+    marginTop: 6,
+    color: '#526077',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

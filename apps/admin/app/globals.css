@@ -23,7 +23,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -289,12 +290,54 @@ h1 {
 
 .catalog-row input,
 .catalog-row select,
-.catalog-create-card input {
+.catalog-row textarea,
+.catalog-create-card input,
+.catalog-create-card textarea,
+.current-prize-row select {
   min-height: 2.75rem;
   padding: 0.6rem 0.7rem;
   border: 1px solid #cbd5e5;
   border-radius: 0.6rem;
   background: #fff;
+}
+
+.catalog-row textarea,
+.catalog-create-card textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.current-prize-row {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #dce3ef;
+  border-radius: 0.8rem;
+}
+
+.current-prize-row label {
+  display: grid;
+  gap: 0.4rem;
+  color: #37435a;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.prize-editor,
+.prize-row {
+  grid-template-columns: 1fr;
+}
+
+.prize-row > label {
+  width: 100%;
+}
+
+.prize-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .catalog-create-card {
@@ -388,7 +431,8 @@ h1 {
   }
 
   .catalog-row,
-  .knowledge-point-row {
+  .knowledge-point-row,
+  .current-prize-row {
     grid-template-columns: 1fr;
   }
 }

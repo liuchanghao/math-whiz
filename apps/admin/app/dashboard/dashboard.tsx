@@ -12,7 +12,7 @@ const modules = [
   { name: '试题管理' },
   { name: '答题记录' },
   { name: '年级管理', href: '/catalog' },
-  { name: '奖品管理' },
+  { name: '奖品管理', href: '/prizes' },
 ];
 
 export function Dashboard() {

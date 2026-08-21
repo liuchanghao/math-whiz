@@ -10,6 +10,7 @@ export const gradeSchema = z
     name: z.string().trim().min(1).max(32),
     sortOrder: z.number().int().min(1).max(100),
     status: catalogueStatusSchema,
+    currentPrizeId: z.uuid().nullable(),
   })
   .strict();
 

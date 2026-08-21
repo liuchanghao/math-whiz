@@ -62,6 +62,64 @@ describe('member authentication in the mobile application', () => {
     });
   });
 
+  it('shows only the available grades returned for the signed-in member', async () => {
+    jest
+      .mocked(globalThis.fetch)
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '登录成功', data: session }),
+      )
+      .mockReturnValueOnce(
+        apiResponse({
+          status: 200,
+          message: '可答年级获取成功',
+          data: [
+            {
+              id: 1,
+              name: '小学一年级',
+              sortOrder: 1,
+              currentPrize: {
+                id: 'c4160f28-61a7-4c35-9473-259eef1da179',
+                name: '数学星球模型',
+                description: '一枚适合桌面摆放的实物奖品',
+              },
+            },
+          ],
+        }),
+      );
+    render(<App />);
+
+    await screen.findByText('会员登录');
+    fireEvent.changeText(screen.getByLabelText('手机号'), session.member.phone);
+    fireEvent.changeText(screen.getByLabelText('密码'), '123456');
+    fireEvent.press(screen.getByRole('button', { name: '登录' }));
+
+    expect(await screen.findByText('小学一年级')).toBeVisible();
+    expect(
+      screen.getByText('满10题且获得满分，可获得数学星球模型'),
+    ).toBeVisible();
+    expect(screen.queryByText('小学二年级')).toBeNull();
+  });
+
+  it('explains why no grade is shown when none satisfies the opening rules', async () => {
+    jest
+      .mocked(globalThis.fetch)
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '登录成功', data: session }),
+      )
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '可答年级获取成功', data: [] }),
+      );
+    render(<App />);
+
+    await screen.findByText('会员登录');
+    fireEvent.changeText(screen.getByLabelText('手机号'), session.member.phone);
+    fireEvent.changeText(screen.getByLabelText('密码'), '123456');
+    fireEvent.press(screen.getByRole('button', { name: '登录' }));
+
+    expect(await screen.findByText('暂无可答年级')).toBeVisible();
+    expect(screen.getByText(/题量满10题且已配置当前奖品/)).toBeVisible();
+  });
+
   it('does not treat a non-200 HTTP response as a successful login', async () => {
     jest
       .mocked(globalThis.fetch)
@@ -185,6 +243,9 @@ describe('member authentication in the mobile application', () => {
         }),
       )
       .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '可答年级获取成功', data: [] }),
+      )
+      .mockReturnValueOnce(
         apiResponse({
           status: 200,
           message: '密码修改成功，请重新登录',
@@ -221,6 +282,9 @@ describe('member authentication in the mobile application', () => {
           message: '会话有效',
           data: { member: session.member },
         }),
+      )
+      .mockReturnValueOnce(
+        apiResponse({ status: 200, message: '可答年级获取成功', data: [] }),
       )
       .mockReturnValueOnce(
         apiResponse({ status: 200, message: '已退出登录', data: null }),

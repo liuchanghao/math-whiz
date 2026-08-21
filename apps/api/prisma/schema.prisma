@@ -22,25 +22,51 @@ enum CatalogStatus {
   DISABLED
 }
 
+enum QuestionType {
+  SINGLE_CHOICE
+  TRUE_FALSE
+  NUMERIC_FILL
+  EXPRESSION
+  VERTICAL_CALCULATION
+}
+
+enum QuestionDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionStatus {
+  DRAFT
+  ACTIVE
+  DISABLED
+}
+
 model Grade {
   id              Int                   @id
   name            String                @db.VarChar(32)
   sortOrder       Int                   @unique @map("sort_order")
   status          CatalogStatus         @default(ACTIVE)
+  currentPrizeId  String?               @map("current_prize_id") @db.Char(36)
+  currentPrize    Prize?                @relation("CurrentPrize", fields: [currentPrizeId], references: [id], onDelete: Restrict)
   knowledgePoints KnowledgePointGrade[]
+  prizes          PrizeGrade[]
+  questions       QuestionGrade[]
   createdAt       DateTime              @default(now()) @map("created_at") @db.DateTime(3)
   updatedAt       DateTime              @updatedAt @map("updated_at") @db.DateTime(3)
 
+  @@index([currentPrizeId])
   @@map("grades")
 }
 
 model KnowledgePoint {
-  id        String                @id @default(uuid()) @db.Char(36)
-  name      String                @unique @db.VarChar(64)
-  status    CatalogStatus         @default(ACTIVE)
+  id        String                   @id @default(uuid()) @db.Char(36)
+  name      String                   @unique @db.VarChar(64)
+  status    CatalogStatus            @default(ACTIVE)
   grades    KnowledgePointGrade[]
-  createdAt DateTime              @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt DateTime              @updatedAt @map("updated_at") @db.DateTime(3)
+  questions QuestionKnowledgePoint[]
+  createdAt DateTime                 @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt DateTime                 @updatedAt @map("updated_at") @db.DateTime(3)
 
   @@map("knowledge_points")
 }
@@ -56,15 +82,97 @@ model KnowledgePointGrade {
   @@map("knowledge_point_grades")
 }
 
+model Prize {
+  id                String        @id @default(uuid()) @db.Char(36)
+  name              String        @db.VarChar(64)
+  description       String        @db.Text
+  claimInstructions String        @map("claim_instructions") @db.Text
+  status            CatalogStatus @default(ACTIVE)
+  grades            PrizeGrade[]
+  currentForGrades  Grade[]       @relation("CurrentPrize")
+  createdAt         DateTime      @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@index([status, createdAt])
+  @@map("prizes")
+}
+
+model PrizeGrade {
+  prizeId String @map("prize_id") @db.Char(36)
+  gradeId Int    @map("grade_id")
+  prize   Prize  @relation(fields: [prizeId], references: [id], onDelete: Restrict)
+  grade   Grade  @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+
+  @@id([prizeId, gradeId])
+  @@index([gradeId, prizeId])
+  @@map("prize_grades")
+}
+
+model Question {
+  id              String                   @id @default(uuid()) @db.Char(36)
+  type            QuestionType
+  stem            String                   @db.Text
+  explanation     String?                  @db.Text
+  difficulty      QuestionDifficulty
+  status          QuestionStatus           @default(DRAFT)
+  gradingConfig   Json                     @map("grading_config")
+  isUsed          Boolean                  @default(false) @map("is_used")
+  options         QuestionOption[]
+  grades          QuestionGrade[]
+  knowledgePoints QuestionKnowledgePoint[]
+  createdAt       DateTime                 @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt       DateTime                 @updatedAt @map("updated_at") @db.DateTime(3)
+
+  @@index([status, difficulty, createdAt])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String   @id @default(uuid()) @db.Char(36)
+  questionId String   @map("question_id") @db.Char(36)
+  text       String   @db.Text
+  sortOrder  Int      @map("sort_order")
+  isCorrect  Boolean  @default(false) @map("is_correct")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+
+  @@unique([questionId, sortOrder])
+  @@index([questionId, isCorrect])
+  @@map("question_options")
+}
+
+model QuestionGrade {
+  questionId String   @map("question_id") @db.Char(36)
+  gradeId    Int      @map("grade_id")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  grade      Grade    @relation(fields: [gradeId], references: [id], onDelete: Restrict)
+
+  @@id([questionId, gradeId])
+  @@index([gradeId, questionId])
+  @@map("question_grades")
+}
+
+model QuestionKnowledgePoint {
+  questionId       String         @map("question_id") @db.Char(36)
+  knowledgePointId String         @map("knowledge_point_id") @db.Char(36)
+  isPrimary        Boolean        @default(false) @map("is_primary")
+  question         Question       @relation(fields: [questionId], references: [id], onDelete: Restrict)
+  knowledgePoint   KnowledgePoint @relation(fields: [knowledgePointId], references: [id], onDelete: Restrict)
+
+  @@id([questionId, knowledgePointId])
+  @@index([knowledgePointId, questionId])
+  @@index([questionId, isPrimary])
+  @@map("question_knowledge_points")
+}
+
 model Member {
-  id               String         @id @default(uuid()) @db.Char(36)
-  phone            String         @unique @db.Char(11)
-  passwordHash     String         @map("password_hash") @db.VarChar(255)
-  status           MemberStatus   @default(ACTIVE)
-  failedLoginCount Int            @default(0) @map("failed_login_count")
-  lockedUntil      DateTime?      @map("locked_until") @db.DateTime(3)
-  createdAt        DateTime       @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt        DateTime       @updatedAt @map("updated_at") @db.DateTime(3)
+  id               String          @id @default(uuid()) @db.Char(36)
+  phone            String          @unique @db.Char(11)
+  passwordHash     String          @map("password_hash") @db.VarChar(255)
+  status           MemberStatus    @default(ACTIVE)
+  failedLoginCount Int             @default(0) @map("failed_login_count")
+  lockedUntil      DateTime?       @map("locked_until") @db.DateTime(3)
+  createdAt        DateTime        @default(now()) @map("created_at") @db.DateTime(3)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.DateTime(3)
   sessions         MemberSession[] @relation("MemberSessions")
   activeSession    MemberSession?  @relation("ActiveMemberSession")
 

@@ -29,6 +29,7 @@ const grades = Array.from({ length: 6 }, (_, index) => ({
   name: `小学${['一', '二', '三', '四', '五', '六'][index]}年级`,
   sortOrder: index + 1,
   status: 'ACTIVE' as const,
+  currentPrizeId: null,
 }));
 
 const response = (data: unknown, status = 200) =>

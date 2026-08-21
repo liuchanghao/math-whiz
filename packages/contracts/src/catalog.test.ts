@@ -13,6 +13,7 @@ describe('grade and knowledge-point contracts', () => {
       name: `小学${index + 1}年级`,
       sortOrder: index + 1,
       status: 'ACTIVE' as const,
+      currentPrizeId: null,
     }));
 
     expect(gradeListDataSchema.parse(data)).toEqual(data);

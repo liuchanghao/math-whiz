@@ -18,6 +18,7 @@ export const listGrades = async (): Promise<Grade[]> => {
     name: grade.name,
     sortOrder: grade.sortOrder,
     status: grade.status,
+    currentPrizeId: grade.currentPrizeId,
   }));
 };
 
@@ -85,6 +86,7 @@ export const updateGrade = async ({
       name: grade.name,
       sortOrder: grade.sortOrder,
       status: grade.status,
+      currentPrizeId: grade.currentPrizeId,
     };
   } catch (error) {
     if (isPrismaErrorCode(error, 'P2025')) {

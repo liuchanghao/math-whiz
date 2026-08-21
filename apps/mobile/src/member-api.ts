@@ -1,5 +1,6 @@
 import {
   errorEnvelopeSchema,
+  availableGradeListDataSchema,
   memberMeDataSchema,
   memberSessionDataSchema,
   nullDataSchema,
@@ -8,6 +9,7 @@ import {
   type MemberChangePasswordRequest,
   type MemberPublic,
   type MemberSessionData,
+  type AvailableGrade,
 } from '@math-whiz/contracts';
 
 const apiBaseUrl = (
@@ -131,4 +133,16 @@ export const logoutMember = async (refreshToken: string) => {
     body: JSON.stringify({ refreshToken }),
   });
   await parseSuccess(response, nullResponseSchema);
+};
+
+export const getAvailableGrades = async (
+  accessToken: string,
+): Promise<AvailableGrade[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/v1/mobile/grades`, {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  return parseSuccess(
+    response,
+    successEnvelopeSchema(availableGradeListDataSchema),
+  );
 };
